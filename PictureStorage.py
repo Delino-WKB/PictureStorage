@@ -552,7 +552,7 @@ def main():
     """Main program"""
     print("\n" + "=" * 70)
     print("FILE ↔ BINARY IMAGE CONVERTER (RGB 24-bit STREAMING)")
-    print("Large images: 10000×10000 pixels (~286 MB per image)")
+    print("Standard images: 4180×4180 pixels (~50 MB per image)")
     print("Maximum file size: 237 Yottabytes")
     print("Memory efficient: streams data in chunks")
     print("Real-time progress tracking with speed & ETA")
