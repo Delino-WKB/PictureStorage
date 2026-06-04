@@ -3,7 +3,7 @@
 File to Binary Image Converter (RGB 24-bit Streaming version)
 Converts any file to/from binary images using full RGB color space
 - Streaming: processes file in chunks (low memory usage)
-- Large images: 10000×10000 pixels (~286 MB per image)
+- Optimized images: 4180×4180 pixels (~50 MB per image)
 - Real-time progress: shows bytes processed immediately
 - Maximum file size: 237 Yottabytes (2^96 pixels × 3 bytes)
 Author: Andrea Salomone
@@ -52,7 +52,7 @@ def print_progress_bar(iteration, total, prefix='', length=40):
     filled_length = int(length * iteration // total)
     bar = '█' * filled_length + '░' * (length - filled_length)
     
-    print(f'\r{prefix} [{bar}] {percent:.1f}% ({iteration}/{total})', end='', flush=True)
+    print(f'\r{prefix} [{bar}] {percent:.1f}% ({iteration}/{total})\033[K', end='', flush=True)
     
     if iteration == total:
         print()
@@ -90,7 +90,7 @@ def print_bytes_progress(bytes_processed, total_bytes, prefix='', length=40, sta
                 else:
                     speed_info += f" | ETA: {eta_seconds/3600:.1f}h"
     
-    print(f'\r{prefix} [{bar}] {percent:.1f}% ({processed_str}/{total_str}){speed_info}', end='', flush=True)
+    print(f'\r{prefix} [{bar}] {percent:.1f}% ({processed_str}/{total_str}){speed_info}\033[K', end='', flush=True)
     
     if bytes_processed >= total_bytes:
         print()
@@ -161,8 +161,8 @@ def encrypt_file():
     data_pixels = complete_pixels + (1 if extra_bits > 0 else 0)
     total_pixels_needed = header_pixels + data_pixels
     
-    # Calculate images needed (max 10000x10000 pixels per image)
-    max_pixels_per_image = 10000 * 10000  # 100 million pixels = ~286 MB
+    # Calculate images needed (max 4180x4180 pixels per image to target ~50 MB)
+    max_pixels_per_image = 4180 * 4180  # 17.47 million pixels = ~50 MB
     num_images = math.ceil(total_pixels_needed / max_pixels_per_image)
     
     print(f"\n✓ Encoding metadata calculated:")
@@ -171,7 +171,7 @@ def encrypt_file():
     print(f"  Extra bits: {extra_bits}")
     print(f"  Total pixels needed: {total_pixels_needed:,} (header: 5 + data: {data_pixels:,})")
     print(f"  Images needed: {num_images}")
-    print(f"  Image size: 10000×10000 (~286 MB per image)")
+    print(f"  Image size: 4180×4180 (~50 MB per image)")
     
     # ===== STEP 3: CONFIRM ENCRYPTION =====
     print(f"\n{'='*70}")
@@ -283,10 +283,10 @@ def encrypt_file():
             filename = f"{base_name}_{image_num + 1:03d}_{file_extension}.png"
             filepath = os.path.join(input_directory, filename)
             
-            print(f"\r  Saving image {image_num + 1}/{num_images}: {filename}...", end='', flush=True)
+            print(f"\r  Saving image {image_num + 1}/{num_images}: {filename}...\033[K", end='', flush=True)
             img = Image.fromarray(img_array, mode='RGB')
             img.save(filepath)
-            print(f"\r  ✓ Saved image {image_num + 1}/{num_images}: {filename}    ")
+            print(f"\r  ✓ Saved image {image_num + 1}/{num_images}: {filename}\033[K")
             
             generated_files.append(filename)
             
@@ -391,7 +391,7 @@ def decrypt_single_file(image_file_path, image_directory):
     
     with open(output_file_path, 'wb') as out_file:
         for idx, image_path in enumerate(matching_files, 1):
-            print(f"\r  Processing image {idx}/{len(matching_files)}...", end='', flush=True)
+            print(f"\r  Processing image {idx}/{len(matching_files)}...\033[K", end='', flush=True)
             
             img = Image.open(image_path)
             img_array = np.array(img)
@@ -552,17 +552,13 @@ def main():
     """Main program"""
     print("\n" + "=" * 70)
     print("FILE ↔ BINARY IMAGE CONVERTER (RGB 24-bit STREAMING)")
-    print("Large images: 10000×10000 pixels (~286 MB per image)")
+    print("Standard images: 4180×4180 pixels (~50 MB per image)")
     print("Maximum file size: 237 Yottabytes")
     print("Memory efficient: streams data in chunks")
     print("Real-time progress tracking with speed & ETA")
     print("=" * 70)
-    print("\nWhat would you like to do?")
-    print("  1. Encrypt (convert file to images)")
-    print("  2. Decrypt (convert images back to file)")
-    print("=" * 70)
     
-    choice = input("\nChoose (1 or 2): ").strip()
+    choice = input("\nChoose (1 - Encrypt  or  2 - Decrypt): ").strip()
     
     if choice == '1':
         encrypt_file()
